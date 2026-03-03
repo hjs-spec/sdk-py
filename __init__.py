@@ -1,4 +1,3 @@
-"""
 HJS Python SDK - Complete SDK for HJS Protocol
 
 Implements all 4 core primitives defined in IETF draft-wang-hjs-judgment-event-00:

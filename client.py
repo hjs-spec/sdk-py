@@ -1,5 +1,5 @@
 """
-HJS Python SDK - Complete SDK for HJS Protocol
+JEP Python SDK - Complete SDK for JEP Protocol
 Implements all 4 core primitives: Judgment, Delegation, Termination, Verification
 """
 
@@ -8,19 +8,19 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 
-class HJSClient:
+class JEPClient:
     """
-    Complete client for HJS Protocol API
+    Complete client for JEP Protocol API
     
     Args:
-        base_url: The base URL of the HJS API (default: https://api.hjs.sh)
+        base_url: The base URL of the HJS API (default: https://api.jep.sh)
         api_key: Optional API key for authenticated endpoints
         timeout: Request timeout in seconds (default: 30)
     """
     
     def __init__(
         self, 
-        base_url: str = "https://api.hjs.sh",
+        base_url: str = "https://api.jep.sh",
         api_key: Optional[str] = None,
         timeout: int = 30
     ):
@@ -31,7 +31,7 @@ class HJSClient:
         
         headers = {
             'Content-Type': 'application/json',
-            'User-Agent': 'HJS-Python-SDK/0.1.0'
+            'User-Agent': 'JEP-Python-SDK/0.1.0'
         }
         if api_key:
             headers['X-API-Key'] = api_key
@@ -75,7 +75,7 @@ class HJSClient:
             Dict with id, status, protocol, timestamp, immutability_anchor
             
         Example:
-            >>> client = HJSClient()
+            >>> client = JEPClient()
             >>> result = client.judgment(
             ...     entity="user@example.com",
             ...     action="approve_loan",

@@ -4,18 +4,18 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="hjs-sdk-py",
+    name="jep-sdk-py",
     version="0.1.0",
-    description="Complete Python SDK for HJS Protocol - Judgment, Delegation, Termination, Verification",
+    description="Complete Python SDK for JEP Protocol - Judgment, Delegation, Termination, Verification",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Human Judgment Systems Foundation Ltd.",
+    author="JEP Foundation Ltd.",
     author_email="signal@humanjudgment.org",
-    url="https://github.com/hjs-protocol/sdk-py",
+    url="https://github.com/jep-protocol/sdk-py",
     project_urls={
-        "Bug Tracker": "https://github.com/hjs-protocol/sdk-py/issues",
-        "Documentation": "https://github.com/hjs-protocol/sdk-py#readme",
-        "Source Code": "https://github.com/hjs-protocol/sdk-py",
+        "Bug Tracker": "https://github.com/jep-protocol/sdk-py/issues",
+        "Documentation": "https://github.com/jep-protocol/sdk-py#readme",
+        "Source Code": "https://github.com/jep-protocol/sdk-py",
     },
     packages=find_packages(),
     install_requires=[
@@ -35,6 +35,6 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: System :: Logging",
     ],
-    keywords="hjs, protocol, judgment, delegation, termination, verification, ietf, draft, ai, accountability, traceability",
+    keywords="jep, protocol, judgment, delegation, termination, verification, ietf, draft, ai, accountability, traceability",
     license="MIT",
 )

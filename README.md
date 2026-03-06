@@ -1,25 +1,25 @@
-# HJS Python SDK
+# JEP Python SDK
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
 
-Python SDK for [HJS: A Judgment Event Protocol](https://github.com/hjs-protocol/spec).
+Python SDK for [JEP: A Judgment Event Protocol](https://github.com/hjs-protocol/spec).
 
 Implements all 4 core primitives: **Judgment**, **Delegation**, **Termination**, **Verification**.
 
 ## 📦 Installation
 
 ```bash
-pip install hjs-sdk-py
+pip install jep-sdk-py
 ```
 
 ## 🚀 Quick Start
 
 ```python
-from hjs import HJSClient
+from jep import HJSClient
 
 # Create client with API key
-client = HJSClient(api_key="your-api-key")
+client = JEPClient(api_key="your-api-key")
 
 # 1. Record a judgment
 result = client.judgment(
@@ -45,9 +45,9 @@ print(f"✅ Verification result: {verify['status']}")  # 'VALID' or 'INVALID'
 ### Using Context Manager
 
 ```python
-from hjs import HJSClient
+from hjs import JEPClient
 
-with HJSClient(api_key="your-api-key") as client:
+with JEPClient(api_key="your-api-key") as client:
     result = client.judgment(
         entity="alice@bank.com",
         action="loan_approved"
@@ -62,8 +62,8 @@ with HJSClient(api_key="your-api-key") as client:
 ### Constructor
 
 ```python
-client = HJSClient(
-    base_url="https://api.hjs.sh",  # Optional
+client = JEPClient(
+    base_url="https://api.jep.sh",  # Optional
     api_key="your-api-key",         # Optional
     timeout=30                      # Optional
 )
@@ -72,7 +72,7 @@ client = HJSClient(
 **Parameters:**
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `base_url` | str | `"https://api.hjs.sh"` | API base URL |
+| `base_url` | str | `"https://api.jep.sh"` | API base URL |
 | `api_key` | str | `None` | API key for authentication |
 | `timeout` | int | `30` | Request timeout in seconds |
 
@@ -96,7 +96,7 @@ result = client.judgment(
 {
     "id": "jgd_1234567890abcd",
     "status": "recorded",
-    "protocol": "HJS/1.0",
+    "protocol": "JEP/1.0",
     "timestamp": "2026-02-23T12:00:00.000Z",
     "immutability_anchor": {
         "type": "ots",
@@ -241,14 +241,14 @@ key = client.generate_key("user@example.com", "my-app")
 
 ```bash
 # Install from source
-git clone https://github.com/hjs-protocol/sdk-py.git
+git clone https://github.com/jep-protocol/sdk-py.git
 cd sdk-py
 pip install -e .
 
 # Run quick test
 python -c "
-from hjs import HJSClient
-client = HJSClient()
+from jep import JEPClient
+client = JEPClient()
 result = client.generate_key('test@example.com', 'test')
 print('✅ Generated key:', result['key'][:8] + '...')
 "
@@ -257,10 +257,10 @@ print('✅ Generated key:', result['key'][:8] + '...')
 ## ❌ Error Handling
 
 ```python
-from hjs import HJSClient
+from jep import JEPClient
 import requests
 
-client = HJSClient(api_key="your-key")
+client = JEPClient(api_key="your-key")
 
 try:
     result = client.judgment(
@@ -276,11 +276,11 @@ except requests.RequestException as e:
 
 ## 🔗 Related Repositories
 
-- [Protocol Specification](https://github.com/hjs-protocol/spec)
-- [Core Implementation (Rust)](https://github.com/hjs-protocol/core)
-- [API Service](https://github.com/hjs-protocol/api)
-- [JavaScript SDK](https://github.com/hjs-protocol/sdk-js)
-- [CLI Tool](https://github.com/hjs-protocol/cli)
+- [Protocol Specification](https://github.com/jep-protocol/spec)
+- [Core Implementation (Rust)](https://github.com/jep-protocol/core)
+- [API Service](https://github.com/jep-protocol/api)
+- [JavaScript SDK](https://github.com/jep-protocol/sdk-js)
+- [CLI Tool](https://github.com/jep-protocol/cli)
 
 ## 📄 License
 
@@ -290,7 +290,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 Contributions are welcome! Please:
 
-- Open an [Issue](https://github.com/hjs-protocol/sdk-py/issues) for bugs or suggestions
+- Open an [Issue](https://github.com/jep-protocol/sdk-py/issues) for bugs or suggestions
 - Submit Pull Requests for improvements
 - See our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md)
 

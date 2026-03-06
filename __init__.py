@@ -1,5 +1,5 @@
 """
-JEP Python SDK - Complete SDK for HJS Protocol
+JEP Python SDK - Complete SDK for JEP Protocol
 
 Implements all 4 core primitives defined in IETF draft-wang-hjs-judgment-event-00:
 

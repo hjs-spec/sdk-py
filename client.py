@@ -13,7 +13,7 @@ class JEPClient:
     Complete client for JEP Protocol API
     
     Args:
-        base_url: The base URL of the HJS API (default: https://api.jep.sh)
+        base_url: The base URL of the JEP API (default: https://api.jep.sh)
         api_key: Optional API key for authenticated endpoints
         timeout: Request timeout in seconds (default: 30)
     """

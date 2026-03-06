@@ -16,7 +16,7 @@ pip install jep-sdk-py
 ## 🚀 Quick Start
 
 ```python
-from jep import HJSClient
+from jep import JEPClient
 
 # Create client with API key
 client = JEPClient(api_key="your-api-key")
@@ -45,7 +45,7 @@ print(f"✅ Verification result: {verify['status']}")  # 'VALID' or 'INVALID'
 ### Using Context Manager
 
 ```python
-from hjs import JEPClient
+from jep import JEPClient
 
 with JEPClient(api_key="your-api-key") as client:
     result = client.judgment(

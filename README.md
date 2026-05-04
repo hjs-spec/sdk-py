@@ -1,301 +1,138 @@
-# JEP Python SDK
+# JEP Python SDK v0.6
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+Python SDK for the JEP v0.6 API seed.
 
-Python SDK for [JEP: A Judgment Event Protocol](https://github.com/hjs-protocol/spec).
+This SDK targets the current JEP API shape:
 
-Implements all 4 core primitives: **Judgment**, **Delegation**, **Termination**, **Verification**.
+```text
+POST /events/create
+POST /events/verify
+GET  /health
+```
 
-## 📦 Installation
+It is aligned with:
+
+- `draft-wang-jep-judgment-event-protocol-06`
+- `draft-wang-jep-profiles-00`
+- `draft-wang-jep-conformance-00`
+- `hjs-spec/jep-api`
+
+## Status
+
+Experimental implementation seed.
+
+This SDK does not define new JEP-Core semantics and does not determine legal liability, factual truth, regulatory compliance, or complete-log availability.
+
+## Installation
 
 ```bash
 pip install jep-sdk-py
 ```
 
-## 🚀 Quick Start
+For local development:
 
-```python
-from jep import JEPClient
-
-# Create client with API key
-client = JEPClient(api_key="your-api-key")
-
-# 1. Record a judgment
-result = client.judgment(
-    entity="alice@bank.com",
-    action="loan_approved",
-    scope={"amount": 100000}
-)
-print(f"✅ Judgment recorded: {result['id']}")
-
-# 2. Create a delegation
-delegation = client.delegation(
-    delegator="manager@company.com",
-    delegatee="employee@company.com",
-    scope={"permissions": ["approve_under_1000"]}
-)
-print(f"✅ Delegation created: {delegation['id']}")
-
-# 3. Verify the record
-verify = client.verify(delegation['id'])
-print(f"✅ Verification result: {verify['status']}")  # 'VALID' or 'INVALID'
+```bash
+pip install -e ".[dev]"
 ```
 
-### Using Context Manager
+## Quick Start
 
 ```python
-from jep import JEPClient
+from jep import JEPClient, CreateEventRequest, Verb
 
-with JEPClient(api_key="your-api-key") as client:
-    result = client.judgment(
-        entity="alice@bank.com",
-        action="loan_approved"
-    )
-    print(f"✅ Recorded: {result['id']}")
+client = JEPClient(base_url="http://127.0.0.1:8000")
+
+created = client.create_event(CreateEventRequest(
+    verb=Verb.JUDGMENT.value,
+    who="did:example:agent-789",
+    what={"claim": "approve"},
+))
+
+print(created.event_hash)
+
+verified = client.verify_event({
+    "event": created.event.to_dict(),
+    "mode": "archival",
+})
+
+print(verified.valid)
 ```
 
----
+## Core Types
 
-## 📚 API Reference
+- `JEPEvent`
+- `CreateEventRequest`
+- `EventResponse`
+- `VerifyEventRequest`
+- `ValidationResult`
+- `HealthResponse`
 
-### Constructor
+Supported verbs:
 
 ```python
-client = JEPClient(
-    base_url="https://api.jep.sh",  # Optional
-    api_key="your-api-key",         # Optional
-    timeout=30                      # Optional
-)
+Verb.JUDGMENT
+Verb.DELEGATION
+Verb.TERMINATION
+Verb.VERIFICATION
 ```
 
-**Parameters:**
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `base_url` | str | `"https://api.jep.sh"` | API base URL |
-| `api_key` | str | `None` | API key for authentication |
-| `timeout` | int | `30` | Request timeout in seconds |
+## API
 
----
-
-### Core Primitives
-
-#### 1. Judgment — Record structured decisions
+### Create event
 
 ```python
-result = client.judgment(
-    entity="user@example.com",           # Required: who is making the judgment
-    action="approve",                     # Required: what action
-    scope={"amount": 1000},              # Optional: additional context
-    immutability={"type": "ots"}         # Optional: anchor to blockchain
-)
+resp = client.create_event(CreateEventRequest(
+    verb=Verb.JUDGMENT.value,
+    who="did:example:agent",
+    what="sha256:...",
+))
 ```
 
-**Returns:**
-```python
-{
-    "id": "jgd_1234567890abcd",
-    "status": "recorded",
-    "protocol": "JEP/1.0",
-    "timestamp": "2026-02-23T12:00:00.000Z",
-    "immutability_anchor": {
-        "type": "ots",
-        "reference": "...",
-        "anchored_at": "..."
-    }
-}
-```
-
-#### 2. Delegation — Transfer authority
+### Verify event
 
 ```python
-result = client.delegation(
-    delegator="manager@company.com",     # Required: who delegates
-    delegatee="employee@company.com",    # Required: who receives
-    judgment_id="jgd_xxx",               # Optional: linked judgment
-    scope={"permissions": ["approve"]},  # Optional: delegation scope
-    expiry="2026-12-31T23:59:59Z"        # Optional: expiration time (ISO 8601)
-)
+result = client.verify_event({
+    "event": resp.event.to_dict(),
+    "mode": "archival",
+})
 ```
 
-**Returns:**
-```python
-{
-    "id": "dlg_1234567890abcd",
-    "status": "active",
-    "delegator": "manager@company.com",
-    "delegatee": "employee@company.com",
-    "scope": {"permissions": ["approve"]},
-    "created_at": "2026-02-23T12:00:00.000Z"
-}
-```
-
-#### 3. Termination — End responsibility
+### Convenience helpers
 
 ```python
-result = client.termination(
-    terminator="admin@company.com",      # Required: who terminates
-    target_id="dlg_1234567890abcd",      # Required: what to terminate
-    target_type="delegation",            # Required: 'judgment' or 'delegation'
-    reason="Employee left company"       # Optional: reason for termination
-)
+client.judgment("did:example:agent", what)
+client.delegation("did:example:agent", what)
+client.termination("did:example:agent", what, ref="sha256:parent")
+client.verification("did:example:agent", what, ref="sha256:parent")
 ```
 
-**Returns:**
-```python
-{
-    "id": "trm_1234567890abcd",
-    "terminator": "admin@company.com",
-    "target_id": "dlg_1234567890abcd",
-    "target_type": "delegation",
-    "reason": "Employee left company",
-    "created_at": "2026-02-23T12:00:00.000Z"
-}
-```
-
-#### 4. Verification — Validate records
-
-```python
-# Method 1: Detailed verification
-result = client.verification(
-    verifier="auditor@company.com",
-    target_id="dlg_1234567890abcd",
-    target_type="delegation"  # 'judgment', 'delegation', or 'termination'
-)
-
-# Method 2: Quick verify (auto-detects type from ID)
-result = client.verify("dlg_1234567890abcd")
-```
-
-**Returns:**
-```python
-{
-    "id": "vfy_1234567890abcd",
-    "result": "VALID",  # or 'INVALID'
-    "details": {
-        "valid": True,
-        "delegation": {...},
-        "judgment": {...}
-    },
-    "verified_at": "2026-02-23T12:00:00.000Z"
-}
-```
-
----
-
-### Query Methods
-
-#### Get single record
-
-```python
-judgment = client.get_judgment("jgd_xxx")
-delegation = client.get_delegation("dlg_xxx")
-termination = client.get_termination("trm_xxx")
-```
-
-#### List records
-
-```python
-# List judgments
-judgments = client.list_judgments(
-    entity="user@example.com",
-    page=1,
-    limit=20
-)
-
-# List delegations
-delegations = client.list_delegations(
-    delegator="manager@company.com",
-    status="active"
-)
-```
-
----
-
-### Utility Methods
-
-#### Health check
+### Health
 
 ```python
 health = client.health()
-# Returns: {"status": "healthy", "version": "1.0.0", ...}
 ```
 
-#### API documentation
-
-```python
-docs = client.docs()
-# Returns complete API documentation
-```
-
-#### Generate API key
-
-```python
-key = client.generate_key("user@example.com", "my-app")
-# Returns: {"key": "...", "email": "...", "created": "..."}
-```
-
----
-
-## 🧪 Testing
+## Testing
 
 ```bash
-# Install from source
-git clone https://github.com/jep-protocol/sdk-py.git
-cd sdk-py
-pip install -e .
-
-# Run quick test
-python -c "
-from jep import JEPClient
-client = JEPClient()
-result = client.generate_key('test@example.com', 'test')
-print('✅ Generated key:', result['key'][:8] + '...')
-"
+pytest -q
 ```
 
-## ❌ Error Handling
+Tests use a local in-process HTTP server and do not require a live JEP API.
 
-```python
-from jep import JEPClient
-import requests
+## Related Repositories
 
-client = JEPClient(api_key="your-key")
+- JEP v0.6: https://github.com/hjs-spec/jep-v06
+- JEP API v0.6: https://github.com/hjs-spec/jep-api
+- HJS v0.5: https://github.com/hjs-spec/hjs-05
+- JAC v0.5: https://github.com/hjs-spec/jac-agent-02
 
-try:
-    result = client.judgment(
-        entity="alice@bank.com",
-        action="loan_approved"
-    )
-    print("✅ Success:", result['id'])
-except ValueError as e:
-    print("❌ Validation error:", e)
-except requests.RequestException as e:
-    print("❌ API error:", e)
-```
+## Public Drafts
 
-## 🔗 Related Repositories
+- JEP-Core: https://datatracker.ietf.org/doc/draft-wang-jep-judgment-event-protocol/
+- JEP-Profiles: https://datatracker.ietf.org/doc/draft-wang-jep-profiles/
+- JEP-Conformance: https://datatracker.ietf.org/doc/draft-wang-jep-conformance/
 
-- [Protocol Specification](https://github.com/jep-protocol/spec)
-- [Core Implementation (Rust)](https://github.com/jep-protocol/core)
-- [API Service](https://github.com/jep-protocol/api)
-- [JavaScript SDK](https://github.com/jep-protocol/sdk-js)
-- [CLI Tool](https://github.com/jep-protocol/cli)
+## License
 
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-- Open an [Issue](https://github.com/jep-protocol/sdk-py/issues) for bugs or suggestions
-- Submit Pull Requests for improvements
-- See our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md)
-
----
-
-**© 2026 HJS Foundation Ltd.**  
-This document is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-```
+MIT

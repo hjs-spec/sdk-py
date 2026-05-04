@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jep-sdk-py"
+version = "0.6.0"
+description = "Python SDK seed for creating and verifying JEP v0.6 events through the JEP API"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "HJS Spec", email = "signal@humanjudgment.org" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.31.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/hjs-spec/jep-sdk-py"
+Repository = "https://github.com/hjs-spec/jep-sdk-py"
+Issues = "https://github.com/hjs-spec/jep-sdk-py/issues"
+
+[tool.setuptools.packages.find]
+include = ["jep*"]

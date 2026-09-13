@@ -136,3 +136,5 @@ Tests use a local in-process HTTP server and do not require a live JEP API.
 ## License
 
 MIT
+
+Validation results expose `conformance_class` from the API. This field may be absent (empty in Python/Go) with older servers; it is never inferred as proof of conformance. Diagnostic maps preserve `code`, `message`, `level`, and `recoverable`.

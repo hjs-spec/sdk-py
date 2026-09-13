@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jep-sdk-py"
-version = "0.6.0"
+version = "0.6.1"
 description = "Python SDK seed for creating and verifying JEP v0.6 events through the JEP API"
 readme = "README.md"
 license = { text = "MIT" }
@@ -32,9 +32,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/hjs-spec/jep-sdk-py"
-Repository = "https://github.com/hjs-spec/jep-sdk-py"
-Issues = "https://github.com/hjs-spec/jep-sdk-py/issues"
+Homepage = "https://github.com/hjs-spec/sdk-py"
+Repository = "https://github.com/hjs-spec/sdk-py"
+Issues = "https://github.com/hjs-spec/sdk-py/issues"
 
 [tool.setuptools.packages.find]
 include = ["jep*"]

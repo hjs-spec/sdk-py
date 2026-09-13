@@ -19,3 +19,9 @@ def test_signed_wire_members_survive_roundtrip(ref):
 def test_roundtrip_does_not_coerce_signed_values():
     wire = {"jep": "1", "verb": "J", "who": "agent", "when": "123", "nonce": "n", "sig": "s"}
     assert JEPEvent.from_dict(wire).to_dict() == wire
+
+
+def test_invalid_result_type_cannot_become_success():
+    from jep.client import ValidationResult, HealthResponse
+    assert not ValidationResult.from_dict({"valid": "false"}).valid
+    assert not HealthResponse.from_dict({"ok": "false"}).ok

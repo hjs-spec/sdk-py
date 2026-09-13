@@ -137,7 +137,7 @@ class ValidationResult:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ValidationResult":
         return cls(
-            valid=bool(data.get("valid", False)),
+            valid=data.get("valid") is True,
             level=int(data.get("level", 0)),
             mode=data.get("mode", ""),
             profile=data.get("profile", ""),
@@ -170,7 +170,7 @@ class HealthResponse:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "HealthResponse":
-        return cls(ok=bool(data.get("ok", False)), profile=data.get("profile", ""))
+        return cls(ok=data.get("ok") is True, profile=data.get("profile", ""))
 
 
 class JEPAPIError(Exception):

@@ -15,3 +15,7 @@ PYTHONPATH=. python -m pytest -q
 ## Compatibility and remaining limits
 
 Existing jep imports remain. This package and jep-agent-sdk still share that import namespace: use separate virtual environments.
+
+## Follow-up hardening
+
+Validation and health results only treat literal JSON true as success; strings such as "false" are not coerced to True. Serialization may preserve historical null values without claiming that they satisfy the current creation schema.

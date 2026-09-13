@@ -1,6 +1,6 @@
 # JEP Python SDK v0.6
 
-Python client for the JEP-Core-0.6 API (wire version `"1"`). SDK release versions are separate from the protocol version.
+Python client for the [JEP-Core-0.6](https://github.com/hjs-spec/jep-v06) API (wire version `"1"`). SDK release versions are separate from the protocol version. See the protocol repository for core semantics, profiles, and public drafts.
 
 This SDK targets the current JEP API shape:
 
@@ -9,13 +9,6 @@ POST /events/create
 POST /events/verify
 GET  /health
 ```
-
-It is aligned with:
-
-- `draft-wang-jep-judgment-event-protocol-06`
-- `draft-wang-jep-profiles-00`
-- `draft-wang-jep-conformance-00`
-- `hjs-spec/jep-api`
 
 ## Status
 
@@ -62,6 +55,7 @@ print(verified.valid)
 
 ## Core Types
 
+- `Verb`
 - `JEPEvent`
 - `CreateEventRequest`
 - `EventResponse`
@@ -69,20 +63,11 @@ print(verified.valid)
 - `ValidationResult`
 - `HealthResponse`
 
-Supported verbs:
-
-```python
-Verb.JUDGMENT
-Verb.DELEGATION
-Verb.TERMINATION
-Verb.VERIFICATION
-```
-
 ## API and helpers
 
 The quickstart above demonstrates event creation and archival verification. The client also exposes helpers for the four verbs; see [client methods and types](jep/client.py) for signatures and options.
 
-For object-form `what`, `D` requires a claim, delegatee, and scope; `T` requires a claim, target, and termination scope; `V` requires a verification scope and non-null reference. Digest-form claims are also supported. Use the actual returned event hash for an event reference. See the [event schema](https://github.com/hjs-spec/jep-v06/blob/main/schemas/jep-event.schema.json) for the full requirements.
+Claim fields and reference requirements are defined in the [Core-0.6 event schema](https://github.com/hjs-spec/jep-v06/blob/main/schemas/jep-event.schema.json). For an event reference, use the actual returned event hash.
 
 ### Health
 
@@ -108,12 +93,6 @@ Tests use a local in-process HTTP server and do not require a live JEP API.
 - JEP API v0.6: https://github.com/hjs-spec/jep-api
 - HJS v0.5: https://github.com/hjs-spec/hjs-05
 - JAC v0.5: https://github.com/hjs-spec/jac-agent-02
-
-## Public Drafts
-
-- JEP-Core: https://datatracker.ietf.org/doc/draft-wang-jep-judgment-event-protocol/
-- JEP-Profiles: https://datatracker.ietf.org/doc/draft-wang-jep-profiles/
-- JEP-Conformance: https://datatracker.ietf.org/doc/draft-wang-jep-conformance/
 
 ## License
 

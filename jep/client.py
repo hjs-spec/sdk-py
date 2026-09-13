@@ -12,6 +12,7 @@ It is an implementation seed and does not define new JEP-Core semantics.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from copy import deepcopy
 from enum import Enum
 from typing import Any, Dict, List, Optional
 import requests
@@ -38,18 +39,20 @@ class JEPEvent:
     nonce: str
     what: Any = None
     aud: Optional[str] = None
-    ref: Optional[str] = None
+    ref: str | Dict[str, Any] | None = None
     ext: Optional[Dict[str, Any]] = None
     ext_crit: Optional[List[str]] = None
-    sig: Optional[str] = None
+    sig: str | Dict[str, Any] | None = None
+    _wire: Optional[Dict[str, Any]] = field(default=None, repr=False, compare=False)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "JEPEvent":
+        data = deepcopy(data)
         return cls(
-            jep=data.get("jep", JEP_WIRE_VERSION),
+            jep=data["jep"],
             verb=data["verb"],
             who=data["who"],
-            when=int(data["when"]),
+            when=data["when"],
             nonce=data["nonce"],
             what=data.get("what"),
             aud=data.get("aud"),
@@ -57,28 +60,16 @@ class JEPEvent:
             ext=data.get("ext"),
             ext_crit=data.get("ext_crit"),
             sig=data.get("sig"),
+            _wire=data,
         )
 
     def to_dict(self) -> Dict[str, Any]:
-        data = {
-            "jep": self.jep,
-            "verb": self.verb,
-            "who": self.who,
-            "when": self.when,
-            "nonce": self.nonce,
-        }
-        if self.what is not None:
-            data["what"] = self.what
-        if self.aud is not None:
-            data["aud"] = self.aud
-        if self.ref is not None:
-            data["ref"] = self.ref
-        if self.ext is not None:
-            data["ext"] = self.ext
-        if self.ext_crit is not None:
-            data["ext_crit"] = self.ext_crit
-        if self.sig is not None:
-            data["sig"] = self.sig
+        # Member presence is part of the signed payload: null is not omission.
+        data = deepcopy(self._wire) if self._wire is not None else {}
+        for name in ("jep", "verb", "who", "when", "nonce", "what", "aud", "ref", "ext", "ext_crit", "sig"):
+            value = getattr(self, name)
+            if value is not None or name in data:
+                data[name] = deepcopy(value)
         return data
 
 
@@ -88,7 +79,7 @@ class CreateEventRequest:
     what: Any
     who: Optional[str] = None
     aud: Optional[str] = None
-    ref: Optional[str] = None
+    ref: str | Dict[str, Any] | None = None
     ttl_minutes: Optional[int] = None
     digest_only_who: bool = False
     ext: Dict[str, Any] = field(default_factory=dict)
@@ -120,6 +111,7 @@ class VerifyEventRequest:
     event: JEPEvent | Dict[str, Any]
     mode: str = "archival"
     consume_nonce: bool = False
+    expected_audience: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         event = self.event.to_dict() if isinstance(self.event, JEPEvent) else self.event
@@ -127,6 +119,7 @@ class VerifyEventRequest:
             "event": event,
             "mode": self.mode,
             "consume_nonce": self.consume_nonce,
+            **({"expected_audience": self.expected_audience} if self.expected_audience is not None else {}),
         }
 
 
@@ -144,7 +137,7 @@ class ValidationResult:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ValidationResult":
         return cls(
-            valid=bool(data.get("valid", False)),
+            valid=data.get("valid") is True,
             level=int(data.get("level", 0)),
             mode=data.get("mode", ""),
             profile=data.get("profile", ""),
@@ -177,7 +170,7 @@ class HealthResponse:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "HealthResponse":
-        return cls(ok=bool(data.get("ok", False)), profile=data.get("profile", ""))
+        return cls(ok=data.get("ok") is True, profile=data.get("profile", ""))
 
 
 class JEPAPIError(Exception):
@@ -235,7 +228,7 @@ class JEPClient:
     def delegation(self, who: str, what: Any, **kwargs: Any) -> EventResponse:
         return self.create_event(CreateEventRequest(verb=Verb.DELEGATION.value, who=who, what=what, **kwargs))
 
-    def termination(self, who: str, what: Any, ref: Optional[str] = None, **kwargs: Any) -> EventResponse:
+    def termination(self, who: str, what: Any, ref: str | Dict[str, Any] | None = None, **kwargs: Any) -> EventResponse:
         return self.create_event(CreateEventRequest(verb=Verb.TERMINATION.value, who=who, what=what, ref=ref, **kwargs))
 
     def verification(self, who: str, what: Any, ref: str, **kwargs: Any) -> EventResponse:
@@ -262,5 +255,5 @@ class JEPClient:
     def _validate_create_payload(self, payload: Dict[str, Any]) -> None:
         if payload.get("verb") not in {"J", "D", "T", "V"}:
             raise JEPValidationError("verb must be J, D, T, or V")
-        if "what" not in payload or payload.get("what") is None:
+        if "what" not in payload:
             raise JEPValidationError("what is required")

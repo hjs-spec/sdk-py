@@ -1,6 +1,6 @@
 # JEP Python SDK v0.6
 
-Python SDK for the JEP v0.6 API seed.
+Python client for the JEP-Core-0.6 API (wire version `"1"`). SDK release versions are separate from the protocol version.
 
 This SDK targets the current JEP API shape:
 
@@ -36,6 +36,8 @@ pip install -e ".[dev]"
 ```
 
 ## Quick Start
+
+Start the [local API](https://github.com/hjs-spec/jep-api#run-locally) before running this example. Verification uses that API's configured trusted keys.
 
 ```python
 from jep import JEPClient, CreateEventRequest, Verb
@@ -76,41 +78,21 @@ Verb.TERMINATION
 Verb.VERIFICATION
 ```
 
-## API
+## API and helpers
 
-### Create event
+The quickstart above demonstrates event creation and archival verification. The client also exposes helpers for the four verbs; see [client methods and types](jep/client.py) for signatures and options.
 
-```python
-resp = client.create_event(CreateEventRequest(
-    verb=Verb.JUDGMENT.value,
-    who="did:example:agent",
-    what="sha256:...",
-))
-```
-
-### Verify event
-
-```python
-result = client.verify_event({
-    "event": resp.event.to_dict(),
-    "mode": "archival",
-})
-```
-
-### Convenience helpers
-
-```python
-client.judgment("did:example:agent", what)
-client.delegation("did:example:agent", what)
-client.termination("did:example:agent", what, ref="sha256:parent")
-client.verification("did:example:agent", what, ref="sha256:parent")
-```
+For object-form `what`, `D` requires a claim, delegatee, and scope; `T` requires a claim, target, and termination scope; `V` requires a verification scope and non-null reference. Digest-form claims are also supported. Use the actual returned event hash for an event reference. See the [event schema](https://github.com/hjs-spec/jep-v06/blob/main/schemas/jep-event.schema.json) for the full requirements.
 
 ### Health
 
 ```python
 health = client.health()
 ```
+
+## Validation results
+
+Validation results preserve the API's `conformance_class` and diagnostic fields (`code`, `message`, `level`, `recoverable`). Older servers may omit the class; the SDK does not infer conformance.
 
 ## Testing
 
@@ -136,5 +118,3 @@ Tests use a local in-process HTTP server and do not require a live JEP API.
 ## License
 
 MIT
-
-Validation results expose `conformance_class` from the API. This field may be absent (empty in Python/Go) with older servers; it is never inferred as proof of conformance. Diagnostic maps preserve `code`, `message`, `level`, and `recoverable`.

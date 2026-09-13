@@ -133,6 +133,7 @@ class ValidationResult:
     event_hash: Optional[str] = None
     warnings: List[Dict[str, Any]] = field(default_factory=list)
     errors: List[Dict[str, Any]] = field(default_factory=list)
+    conformance_class: str = ""
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "ValidationResult":
@@ -145,6 +146,7 @@ class ValidationResult:
             event_hash=data.get("event_hash"),
             warnings=list(data.get("warnings") or []),
             errors=list(data.get("errors") or []),
+            conformance_class=data.get("conformance_class", ""),
         )
 
 

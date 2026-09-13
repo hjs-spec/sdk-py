@@ -14,7 +14,7 @@ PYTHONPATH=. python -m pytest -q
 
 ## Compatibility and remaining limits
 
-Existing jep imports remain. This package and jep-agent-sdk still share that import namespace: use separate virtual environments.
+Existing `jep` imports remain. Agent SDK 2.0 uses `jep_agent` and can coexist with this package. Agent SDK 1.x still conflicts; upgrade it and follow its migration instructions to restore any files overwritten by an older shared installation.
 
 ## Follow-up hardening
 

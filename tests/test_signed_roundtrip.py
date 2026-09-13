@@ -25,3 +25,16 @@ def test_invalid_result_type_cannot_become_success():
     from jep.client import ValidationResult, HealthResponse
     assert not ValidationResult.from_dict({"valid": "false"}).valid
     assert not HealthResponse.from_dict({"ok": "false"}).ok
+
+
+def test_result_retains_conformance_and_diagnostics_with_old_server_compatibility():
+    from jep import ValidationResult
+    diagnostic = {"code": "ACCEPTANCE_NOT_CHECKED", "message": "archival", "level": 1, "recoverable": False}
+    result = ValidationResult.from_dict({"valid": True, "level": 1, "mode": "archival",
+        "profile": "jep-core-0.6", "conformance_class": "JEP-Baseline-Ed25519-JWS-JCS-0.6",
+        "warnings": [diagnostic]})
+    assert result.conformance_class == "JEP-Baseline-Ed25519-JWS-JCS-0.6"
+    assert result.warnings == [diagnostic]
+    assert ValidationResult.from_dict({"valid": True}).conformance_class == ""
+    # Existing positional construction still assigns the fifth argument to scopes.
+    assert ValidationResult(True, 1, "archival", "jep-core-0.6", ["syntax"]).scopes == ["syntax"]

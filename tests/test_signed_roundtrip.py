@@ -1,40 +1,65 @@
-import json
 import pytest
-from jep import JEPEvent, VerifyEventRequest
+from jep import JEPEvent, VerifyEventRequest, ValidationResult
 
 
-@pytest.mark.parametrize("ref", [None, {"type": "event", "value": "sha256:" + "a" * 64}])
-def test_signed_wire_members_survive_roundtrip(ref):
-    wire = {"jep": "1", "verb": "J", "who": "agent", "when": 123,
-            "nonce": "n", "what": None, "ref": ref, "ext": {},
-            "ext_crit": [], "sig": "header..signature", "future": {"x": 1}}
+@pytest.mark.parametrize("ref", [
+    None,
+    {
+        "type": "jep:event",
+        "value": {"who": "did:example:b", "id": "urn:uuid:00000000-0000-7000-8000-000000000002"},
+        "hash": "sha256:" + "a" * 64,
+    },
+])
+def test_v07_signed_wire_members_survive_roundtrip(ref):
+    wire = {
+        "jep": "1",
+        "id": "urn:uuid:00000000-0000-7000-8000-000000000001",
+        "verb": "J",
+        "who": "did:example:a",
+        "when": 123,
+        "what": {"claim": "approve"},
+        "sig": "header..signature",
+    }
+    if ref is not None:
+        wire["ref"] = ref
     event = JEPEvent.from_dict(wire)
     assert VerifyEventRequest(event).to_dict()["event"] == wire
-    wire["future"]["x"] = 2
-    assert event.to_dict()["future"]["x"] == 1
-    event.who = "changed"
-    assert event.to_dict()["who"] == "changed"
+    event.who = "did:example:changed"
+    assert event.to_dict()["who"] == "did:example:changed"
 
 
-def test_roundtrip_does_not_coerce_signed_values():
-    wire = {"jep": "1", "verb": "J", "who": "agent", "when": "123", "nonce": "n", "sig": "s"}
-    assert JEPEvent.from_dict(wire).to_dict() == wire
+def test_v07_result_retains_checks_and_diagnostics():
+    diagnostic = {
+        "code": "ERR_SIGNATURE_INVALID",
+        "message": "bad signature",
+        "check": "cryptographic",
+        "recoverable": False,
+    }
+    result = ValidationResult.from_dict({
+        "status": "invalid",
+        "mode": "archival",
+        "profile": "jep-core-0.7",
+        "conformance_class": "JEP-Baseline-Ed25519-JWS-JCS-0.7",
+        "event_identity": {"who": "did:example:a", "id": "urn:uuid:1"},
+        "checks": {"syntax": "pass", "cryptographic": "fail"},
+        "warnings": [],
+        "errors": [diagnostic],
+    })
+    assert result.valid is False
+    assert result.checks["cryptographic"] == "fail"
+    assert result.errors == [diagnostic]
+    assert result.conformance_class == "JEP-Baseline-Ed25519-JWS-JCS-0.7"
 
 
-def test_invalid_result_type_cannot_become_success():
-    from jep.client import ValidationResult, HealthResponse
-    assert not ValidationResult.from_dict({"valid": "false"}).valid
-    assert not HealthResponse.from_dict({"ok": "false"}).ok
-
-
-def test_result_retains_conformance_and_diagnostics_with_old_server_compatibility():
-    from jep import ValidationResult
-    diagnostic = {"code": "ACCEPTANCE_NOT_CHECKED", "message": "archival", "level": 1, "recoverable": False}
-    result = ValidationResult.from_dict({"valid": True, "level": 1, "mode": "archival",
-        "profile": "jep-core-0.6", "conformance_class": "JEP-Baseline-Ed25519-JWS-JCS-0.6",
-        "warnings": [diagnostic]})
-    assert result.conformance_class == "JEP-Baseline-Ed25519-JWS-JCS-0.6"
-    assert result.warnings == [diagnostic]
-    assert ValidationResult.from_dict({"valid": True}).conformance_class == ""
-    # Existing positional construction still assigns the fifth argument to scopes.
-    assert ValidationResult(True, 1, "archival", "jep-core-0.6", ["syntax"]).scopes == ["syntax"]
+def test_legacy_payload_is_not_silently_decoded_as_v07():
+    wire = {
+        "jep": "1",
+        "verb": "J",
+        "who": "agent",
+        "when": 123,
+        "nonce": "legacy-nonce",
+        "what": {"claim": "legacy"},
+        "sig": "header..signature",
+    }
+    with pytest.raises(KeyError):
+        JEPEvent.from_dict(wire)

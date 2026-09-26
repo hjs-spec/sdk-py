@@ -65,7 +65,7 @@ print(verified.status, verified.checks)
 - T requires `ref` and `what.termination_scope`.
 - V requires `ref`, `what.verification_scope`, and `what.result`.
 
-The normative schema lives in [jep-core](https://github.com/hjs-spec/jep-core/blob/main/schemas/jep-event.schema.json).
+The reference event schema lives in [jep-core](https://github.com/hjs-spec/jep-core/blob/main/schemas/jep-event.schema.json).
 
 ## Legacy 0.6
 

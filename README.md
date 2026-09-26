@@ -1,22 +1,23 @@
-> Current default: **JEP Core 0.7**. Historical pre-0.7 compatibility, where exposed, is explicit and never selected by heuristic fallback.
+# JEP Python SDK — JEP Core 0.7
 
-# JEP Python SDK v0.6
+Python client for the current [JEP Core 0.7](https://github.com/hjs-spec/jep-core) reference API.
 
-Python client for the [JEP-Core-0.6](https://github.com/hjs-spec/jep-v06) API (wire version `"1"`). SDK release versions are separate from the protocol version. See the protocol repository for core semantics, profiles, and public drafts.
-
-This SDK targets the current JEP API shape:
+The default client uses:
 
 ```text
-POST /events/create
-POST /events/verify
+POST /v0.7/events/create
+POST /v0.7/events/verify
 GET  /health
 ```
 
+Historical pre-0.7 compatibility is explicit through `create_event_legacy()` and
+`verify_event_legacy()`. The SDK never retries a failed 0.7 event as 0.6.
+
 ## Status
 
-Experimental implementation seed.
-
-This SDK does not define new JEP-Core semantics and does not determine legal liability, factual truth, regulatory compliance, or complete-log availability.
+Experimental reference SDK. It does not define new JEP Core semantics and
+does not determine legal liability, factual truth, authorization validity,
+regulatory compliance, causality, or policy outcome.
 
 ## Installation
 
@@ -30,9 +31,7 @@ For local development:
 pip install -e ".[dev]"
 ```
 
-## Quick Start
-
-Start the [local API](https://github.com/hjs-spec/jep-api#run-locally) before running this example. Verification uses that API's configured trusted keys.
+## Quick start
 
 ```python
 from jep import JEPClient, CreateEventRequest, Verb
@@ -45,41 +44,55 @@ created = client.create_event(CreateEventRequest(
     what={"claim": "approve"},
 ))
 
-print(created.event_hash)
-
 verified = client.verify_event({
     "event": created.event.to_dict(),
     "mode": "archival",
 })
 
-print(verified.valid)
+print(created.event.id)
+print(created.event_hash)
+print(verified.status, verified.checks)
 ```
 
-## Core Types
+## JEP Core 0.7 model
 
-- `Verb`
-- `JEPEvent`
-- `CreateEventRequest`
-- `EventResponse`
-- `VerifyEventRequest`
-- `ValidationResult`
-- `HealthResponse`
+- Event Identity is `(who,id)`.
+- `id` is required; Core does not require a top-level nonce.
+- Event Hash identifies one exact signed artifact and is not Event Identity.
+- Validation uses independent checks rather than cumulative Validation Levels.
+- Acceptance mode can return `accepted` or `already_accepted`.
+- D requires `what.delegatee` and `what.scope`.
+- T requires `ref` and `what.termination_scope`.
+- V requires `ref`, `what.verification_scope`, and `what.result`.
 
-## API and helpers
+The normative schema lives in [jep-core](https://github.com/hjs-spec/jep-core/blob/main/schemas/jep-event.schema.json).
 
-The quickstart above demonstrates event creation and archival verification. The client also exposes helpers for the four verbs; see [client methods and types](jep/client.py) for signatures and options.
+## Legacy 0.6
 
-Claim fields and reference requirements are defined in the [Core-0.6 event schema](https://github.com/hjs-spec/jep-v06/blob/main/schemas/jep-event.schema.json). For an event reference, use the actual returned event hash.
-
-### Health
+Legacy handling is deliberately explicit:
 
 ```python
-health = client.health()
+client.verify_event_legacy({
+    "event": legacy_event,
+    "mode": "archival",
+})
 ```
+
+Do not use a failed 0.7 validation as a signal to reinterpret an artifact as 0.6.
 
 ## Validation results
 
-Validation results preserve the API's `conformance_class` and diagnostic fields (`code`, `message`, `level`, `recoverable`). Older servers may omit the class; the SDK does not infer conformance.
+Current results expose:
+
+- `status`: `valid | invalid | indeterminate`
+- `checks`: independent check results
+- `event_identity`
+- `event_hash`
+- optional `acceptance`
+- `warnings` / `errors`
+
+`ValidationResult.valid` is a convenience property equivalent to
+`status == "valid"`.
 
 ## Testing
 
@@ -87,14 +100,12 @@ Validation results preserve the API's `conformance_class` and diagnostic fields 
 pytest -q
 ```
 
-Tests use a local in-process HTTP server and do not require a live JEP API.
+## Related repositories
 
-## Related Repositories
-
-- JEP Core 0.7: https://github.com/hjs-spec/jep-v06
-- JEP API v0.6: https://github.com/hjs-spec/jep-api
-- HJS v0.5: https://github.com/hjs-spec/hjs-05
-- JAC v0.5: https://github.com/hjs-spec/jac-agent-02
+- JEP Core 0.7: https://github.com/hjs-spec/jep-core
+- JEP API: https://github.com/hjs-spec/jep-api
+- JavaScript SDK: https://github.com/hjs-spec/sdk-js
+- Go SDK: https://github.com/hjs-spec/sdk-go
 
 ## License
 

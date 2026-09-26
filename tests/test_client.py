@@ -1,4 +1,4 @@
-"""Tests for JEP Python SDK v0.6."""
+"""Tests for the JEP Python SDK against JEP Core 0.7."""
 
 import json
 import threading
@@ -29,57 +29,64 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/health":
-            self._json(200, {"ok": True, "profile": "jep-core-0.6"})
+            self._json(200, {"ok": True, "profile": "jep-core-0.7"})
         else:
             self._json(404, {"message": "not found"})
 
     def do_POST(self):
         length = int(self.headers.get("content-length", "0"))
         payload = json.loads(self.rfile.read(length) or b"{}")
-
-        if self.path == "/events/create":
+        if self.path == "/v0.7/events/create":
             event = {
                 "jep": "1",
+                "id": payload.get("id", "urn:uuid:00000000-0000-7000-8000-000000000001"),
                 "verb": payload["verb"],
                 "who": payload.get("who", "did:example:agent"),
                 "when": 1234567890,
-                "what": payload.get("what"),
-                "nonce": "nonce-1",
-                "aud": payload.get("aud"),
-                "ref": payload.get("ref"),
-                "ext": payload.get("ext"),
-                "ext_crit": payload.get("ext_crit"),
+                "what": payload["what"],
                 "sig": "header..sig",
             }
+            for key in ("aud", "ref", "ext", "ext_crit"):
+                if payload.get(key) is not None:
+                    event[key] = payload[key]
             self._json(200, {
                 "event": event,
                 "event_hash": "sha256:abc",
                 "validation": {
-                    "valid": True,
-                    "level": 1,
+                    "status": "valid",
                     "mode": "archival",
-                    "profile": "jep-core-0.6",
-                    "scopes": ["syntax", "cryptographic"],
+                    "profile": "jep-core-0.7",
+                    "conformance_class": "JEP-Baseline-Ed25519-JWS-JCS-0.7",
+                    "event_identity": {"who": event["who"], "id": event["id"]},
+                    "checks": {"syntax": "pass", "cryptographic": "pass", "event_identity": "pass"},
                     "event_hash": "sha256:abc",
                     "warnings": [],
                     "errors": [],
-                }
+                },
             })
             return
-
-        if self.path == "/events/verify":
+        if self.path == "/v0.7/events/verify":
             self._json(200, {
-                "valid": True,
-                "level": 1,
+                "status": "valid",
                 "mode": payload.get("mode", "archival"),
-                "profile": "jep-core-0.6",
-                "scopes": ["syntax"],
+                "profile": "jep-core-0.7",
+                "event_identity": {
+                    "who": payload["event"]["who"],
+                    "id": payload["event"]["id"],
+                },
+                "checks": {"syntax": "pass", "cryptographic": "pass", "event_identity": "pass"},
                 "event_hash": "sha256:def",
+                "acceptance": (
+                    {"outcome": "accepted", "effect_applied": True}
+                    if payload.get("mode") == "acceptance" else None
+                ),
                 "warnings": [],
                 "errors": [],
             })
             return
-
+        if self.path == "/events/verify-legacy":
+            self._json(200, {"valid": True, "level": 1, "profile": "jep-core-0.6"})
+            return
         self._json(404, {"message": "not found"})
 
     def log_message(self, *args):
@@ -98,7 +105,7 @@ def api_server():
         thread.join()
 
 
-def test_create_event(api_server):
+def test_create_event_uses_v07(api_server):
     client = JEPClient(base_url=api_server)
     resp = client.create_event(CreateEventRequest(
         verb=Verb.JUDGMENT.value,
@@ -106,48 +113,48 @@ def test_create_event(api_server):
         what={"claim": "approve"},
     ))
     assert resp.event_hash == "sha256:abc"
-    assert resp.event.verb == "J"
+    assert resp.event.id
+    assert resp.validation.status == "valid"
     assert resp.validation.valid is True
 
 
-def test_verify_event(api_server):
+def test_verify_event_uses_v07_result(api_server):
     client = JEPClient(base_url=api_server)
     event = JEPEvent(
         jep="1",
+        id="urn:uuid:00000000-0000-7000-8000-000000000002",
         verb="J",
         who="did:example:agent",
         when=123,
-        what="sha256:abc",
-        nonce="nonce-1",
+        what={"claim": "approve"},
         sig="header..sig",
     )
-    result = client.verify_event(VerifyEventRequest(event=event, mode="archival"))
+    result = client.verify_event(VerifyEventRequest(event=event, mode="acceptance"))
     assert isinstance(result, ValidationResult)
-    assert result.valid is True
-    assert result.profile == "jep-core-0.6"
+    assert result.status == "valid"
+    assert result.profile == "jep-core-0.7"
+    assert result.acceptance["outcome"] == "accepted"
 
 
 def test_health(api_server):
     client = JEPClient(base_url=api_server)
-    health = client.health()
-    assert health.ok is True
-    assert health.profile == "jep-core-0.6"
+    assert client.health().profile == "jep-core-0.7"
 
 
-def test_convenience_helpers(api_server):
-    client = JEPClient(base_url=api_server)
-    assert client.judgment("agent", "judge").event.verb == "J"
-    assert client.delegation("agent", "delegate").event.verb == "D"
-    assert client.termination("agent", "terminate", ref="sha256:parent").event.verb == "T"
-    assert client.verification("agent", "verify", ref="sha256:parent").event.verb == "V"
-
-
-def test_validation_errors():
+def test_verb_minimums():
     client = JEPClient()
     with pytest.raises(JEPValidationError):
-        client.create_event({"verb": "X", "what": "x"})
+        client.create_event({"verb": "D", "what": {"delegatee": "b"}})
     with pytest.raises(JEPValidationError):
-        client.create_event({"verb": "J"})
+        client.create_event({"verb": "T", "what": {"termination_scope": "x"}})
+    with pytest.raises(JEPValidationError):
+        client.create_event({"verb": "V", "ref": "x", "what": {"verification_scope": "syntax"}})
+
+
+def test_explicit_legacy_path(api_server):
+    client = JEPClient(base_url=api_server)
+    result = client.verify_event_legacy({"event": {"jep": "1", "nonce": "legacy"}})
+    assert result["profile"] == "jep-core-0.6"
 
 
 def test_api_error(api_server):

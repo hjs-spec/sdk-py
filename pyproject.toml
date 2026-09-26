@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jep-sdk-py"
-version = "0.6.2"
-description = "Python SDK seed for creating and verifying JEP v0.6 events through the JEP API"
+version = "0.7.0"
+description = "Python SDK for JEP Core 0.7 with explicit pre-0.7 compatibility"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [

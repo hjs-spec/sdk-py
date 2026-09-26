@@ -1,4 +1,4 @@
-"""JEP Python SDK v0.6."""
+"""JEP Python SDK for JEP Core 0.7."""
 
 from .client import (
     JEPClient,
@@ -6,10 +6,14 @@ from .client import (
     JEPValidationError,
     Verb,
     JEPEvent,
+    LegacyJEPEvent,
     CreateEventRequest,
     VerifyEventRequest,
+    LegacyVerifyEventRequest,
     ValidationResult,
+    LegacyValidationResult,
     EventResponse,
+    LegacyEventResponse,
     HealthResponse,
 )
 
@@ -19,9 +23,13 @@ __all__ = [
     "JEPValidationError",
     "Verb",
     "JEPEvent",
+    "LegacyJEPEvent",
     "CreateEventRequest",
     "VerifyEventRequest",
+    "LegacyVerifyEventRequest",
     "ValidationResult",
+    "LegacyValidationResult",
     "EventResponse",
+    "LegacyEventResponse",
     "HealthResponse",
 ]

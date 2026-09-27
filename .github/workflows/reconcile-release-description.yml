@@ -1,0 +1,44 @@
+name: Reconcile historical release description
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/reconcile-release-description.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  description-only:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Correct stale Core 0.6 sentence in software 0.7.0 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/hjs-spec/sdk-py/releases/tags/v0.7.0 > /tmp/before.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          release = json.loads(Path('/tmp/before.json').read_text())
+          assert release['tag_name'] == 'v0.7.0'
+          assert release['target_commitish'] == '1bd6c0c40c70f2ba721b720cb310dca837874fc5'
+          notes = Path('RELEASE-NOTES.md').read_text()
+          assert 'Current releases retain it while using the Core 0.7 profile' in notes
+          PY
+          gh release edit v0.7.0 --repo hjs-spec/sdk-py --notes-file RELEASE-NOTES.md
+          gh api repos/hjs-spec/sdk-py/releases/tags/v0.7.0 > /tmp/after.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          before = json.loads(Path('/tmp/before.json').read_text())
+          after = json.loads(Path('/tmp/after.json').read_text())
+          for field in ('id', 'tag_name', 'target_commitish', 'published_at', 'draft', 'prerelease'):
+              assert before[field] == after[field], field
+          asset_state = lambda r: [(a['id'], a['name'], a['digest'], a['size']) for a in r['assets']]
+          assert asset_state(before) == asset_state(after)
+          assert after['body'].strip() == Path('RELEASE-NOTES.md').read_text().strip()
+          print('Description corrected; release identity, tag and all artifact digests unchanged.')
+          PY

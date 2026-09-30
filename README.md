@@ -2,17 +2,6 @@
 
 Python client for the current [JEP Core 0.7](https://github.com/hjs-spec/jep-core) reference API.
 
-The default client uses:
-
-```text
-POST /v0.7/events/create
-POST /v0.7/events/verify
-GET  /health
-```
-
-Historical pre-0.7 compatibility is explicit through `create_event_legacy()` and
-`verify_event_legacy()`. The SDK never retries a failed 0.7 event as 0.6.
-
 ## Status
 
 Experimental HTTP client. Event creation and verification run on the configured
@@ -23,12 +12,6 @@ before running the examples below.
 
 ```bash
 pip install jep-sdk-py==0.7.0
-```
-
-For local development:
-
-```bash
-pip install -e ".[dev]"
 ```
 
 ## Quick start
@@ -54,19 +37,6 @@ print(created.event_hash)
 print(verified.status, verified.checks)
 ```
 
-## Legacy 0.6
-
-Legacy handling is deliberately explicit:
-
-```python
-client.verify_event_legacy({
-    "event": legacy_event,
-    "mode": "archival",
-})
-```
-
-Do not use a failed 0.7 validation as a signal to reinterpret an artifact as 0.6.
-
 ## Validation results
 
 Current results expose:
@@ -81,9 +51,25 @@ Current results expose:
 `ValidationResult.valid` is a convenience property equivalent to
 `status == "valid"`.
 
+## Legacy 0.6
+
+Legacy handling is deliberately explicit:
+
+```python
+client.verify_event_legacy({
+    "event": legacy_event,
+    "mode": "archival",
+})
+```
+
+Do not use a failed 0.7 validation as a signal to reinterpret an artifact as 0.6.
+
 ## Testing
 
+From a source checkout:
+
 ```bash
+pip install -e ".[dev]"
 pytest -q
 ```
 

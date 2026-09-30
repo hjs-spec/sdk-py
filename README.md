@@ -15,14 +15,14 @@ Historical pre-0.7 compatibility is explicit through `create_event_legacy()` and
 
 ## Status
 
-Experimental reference SDK. It does not define new JEP Core semantics and
-does not determine legal liability, factual truth, authorization validity,
-regulatory compliance, causality, or policy outcome.
+Experimental HTTP client. Event creation and verification run on the configured
+API. Start the [local reference API](https://github.com/hjs-spec/jep-quickstart#start-a-local-api)
+before running the examples below.
 
 ## Installation
 
 ```bash
-pip install jep-sdk-py
+pip install jep-sdk-py==0.7.0
 ```
 
 For local development:
@@ -53,19 +53,6 @@ print(created.event.id)
 print(created.event_hash)
 print(verified.status, verified.checks)
 ```
-
-## JEP Core 0.7 model
-
-- Event Identity is `(who,id)`.
-- `id` is required; Core does not require a top-level nonce.
-- Event Hash identifies one exact signed artifact and is not Event Identity.
-- Validation uses independent checks rather than cumulative Validation Levels.
-- Acceptance mode can return `accepted` or `already_accepted`.
-- D requires `what.delegatee` and `what.scope`.
-- T requires `ref` and `what.termination_scope`.
-- V requires `ref`, `what.verification_scope`, and `what.result`.
-
-The reference event schema lives in [jep-core](https://github.com/hjs-spec/jep-core/blob/main/schemas/jep-event.schema.json).
 
 ## Legacy 0.6
 
@@ -102,7 +89,7 @@ pytest -q
 
 ## Related repositories
 
-- JEP Core 0.7: https://github.com/hjs-spec/jep-core
+- Core contract and implementation path: https://github.com/hjs-spec/jep-core#current-contract
 - JEP API: https://github.com/hjs-spec/jep-api
 - JavaScript SDK: https://github.com/hjs-spec/sdk-js
 - Go SDK: https://github.com/hjs-spec/sdk-go

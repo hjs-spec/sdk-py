@@ -11,7 +11,7 @@ before running the examples below.
 ## Installation
 
 ```bash
-pip install jep-sdk-py==0.7.0
+pip install jep-sdk-py==0.7.1
 ```
 
 ## Quick start
@@ -82,4 +82,4 @@ pytest -q
 
 ## License
 
-MIT
+[MIT](LICENSE); see [licensing scope and notices](NOTICE.md).

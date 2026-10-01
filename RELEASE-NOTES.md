@@ -1,3 +1,11 @@
+# Software 0.7.1
+
+- Supply the full MIT license already declared in README and package metadata.
+- Publish SPDX license metadata and include LICENSE and NOTICE.md in both wheel and source distributions.
+- Verify package versions, license metadata and distributed license bytes before publishing.
+
+Runtime behavior and JEP Core 0.7 semantics are unchanged. Existing published artifacts are not overwritten.
+
 # JEP Core 0.7 migration
 
 - Default API path is now `/v0.7/events/*`.

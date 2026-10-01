@@ -205,7 +205,7 @@ class JEPClient:
         self.session = requests.Session()
         self.session.headers.update({
             "content-type": "application/json",
-            "user-agent": "JEP-Python-SDK/0.7.0",
+            "user-agent": "JEP-Python-SDK/0.7.1",
         })
         if api_key:
             self.session.headers.update({

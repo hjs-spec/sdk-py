@@ -1,7 +1,9 @@
-# Notice
+# Licensing scope
 
-This repository contains an experimental Python SDK seed for the JEP reference API. Supported protocol revisions are documented in README.md.
+Original implementation code, examples, tests and implementation documentation
+use the MIT license in [LICENSE](LICENSE), as previously declared in package
+metadata and README. The wheel and source distribution include the full text.
 
-Internet-Draft text and excerpts are governed by the IETF Trust Legal Provisions and BCP 78 / BCP 79.
-
-Implementation code, examples, and tests are provided under the repository license unless otherwise stated.
+Internet-Draft text, excerpts and extracted Code Components retain their
+applicable IETF Trust notices and contribution/IPR terms. Third-party dependencies
+and separately attributed material retain their own licenses.
